@@ -1,7 +1,7 @@
 
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
@@ -13,7 +13,7 @@ type Booking = {
   quoted_amount: number | null
 }
 
-export default function PaymentPage() {
+function PaymentContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const bookingId = searchParams.get('bookingId')
@@ -47,8 +47,6 @@ export default function PaymentPage() {
         setLoading(false)
         return
       }
-
-      
 
       const { data, error } = await supabase
         .from('bookings')
@@ -173,5 +171,13 @@ export default function PaymentPage() {
 
       </div>
     </main>
+  )
+}
+
+export default function PaymentPage() {
+  return (
+    <Suspense fallback={<p className="p-8">Loading payment page...</p>}>
+      <PaymentContent />
+    </Suspense>
   )
 }
