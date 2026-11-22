@@ -32,13 +32,12 @@ export default function DashboardPage() {
         .eq('id', user.id)
         .single()
 
-        if (error) {
-            console.log('Profile error:', error.message)
-            setRole('Error: ' + error.message)
-        } else {
-            setRole(profile.role)
-        }
-      
+      if (error) {
+        console.log('Profile error:', error.message)
+        setRole('Error: ' + error.message)
+      } else {
+        setRole(profile.role)
+      }
 
       setLoading(false)
     }
@@ -58,6 +57,7 @@ export default function DashboardPage() {
   return (
     <main className="min-h-screen bg-gray-100 p-8">
       <div className="mx-auto max-w-3xl rounded-xl bg-white p-8 shadow">
+
         <h1 className="text-3xl font-bold text-gray-900">
           MarketplaceOS Dashboard
         </h1>
@@ -71,70 +71,95 @@ export default function DashboardPage() {
         </p>
 
         {role === 'customer' && (
-            <div className="mt-6">
-                <h2 className="text-xl font-semibold">Customer Dashboard</h2>
+          <div className="mt-6">
+            <h2 className="text-xl font-semibold">Customer Dashboard</h2>
 
-                <p className="mt-2 text-gray-600">
-                    Browse services and manage your bookings.
-                </p>
+            <p className="mt-2 text-gray-600">
+              Browse services and manage your bookings.
+            </p>
 
-                <button
-                    onClick={() => router.push('/services')}
-                    className="mt-4 rounded-lg bg-blue-600 px-5 py-3 text-white"
-                >
-                    Browse Services
-                </button>
+            <div className="mt-4 flex flex-wrap gap-3">
+              <button
+                onClick={() => router.push('/services')}
+                className="rounded-lg bg-blue-600 px-5 py-3 text-white"
+              >
+                Browse Services
+              </button>
 
-                <button
-                    onClick={() => router.push('/bookings')}
-                    className="ml-3 mt-4 rounded-lg bg-green-600 px-5 py-3 text-white"
-                >
-                    Request a Booking
-                </button>
+              <button
+                onClick={() => router.push('/bookings')}
+                className="rounded-lg bg-green-600 px-5 py-3 text-white"
+              >
+                Request a Booking
+              </button>
 
-                <button
-                    onClick={() => router.push('/my-bookings')}
-                    className="ml-3 mt-4 rounded-lg bg-purple-600 px-5 py-3 text-white"
-                >
-                    My Booking
-                </button>
-
-
+              <button
+                onClick={() => router.push('/my-bookings')}
+                className="rounded-lg bg-purple-600 px-5 py-3 text-white"
+              >
+                My Bookings
+              </button>
             </div>
+          </div>
         )}
-
-        
 
         {role === 'vendor' && (
           <div className="mt-6">
             <h2 className="text-xl font-semibold">Vendor Dashboard</h2>
+
             <p className="mt-2 text-gray-600">
-              Manage your business and services.
+              Manage your business, services and customer bookings.
             </p>
-            <button
-              onClick={() => router.push('/vendor')}
-              className="mt-4 rounded bg-blue-600 px-5 py-2 text-white"
-            >
-              Vendor Onboarding
-            </button>
+
+            <div className="mt-4 flex flex-wrap gap-3">
+              <button
+                onClick={() => router.push('/vendor')}
+                className="rounded-lg bg-blue-600 px-5 py-3 text-white"
+              >
+                Vendor Onboarding
+              </button>
+
+              <button
+                onClick={() => router.push('/vendor-services')}
+                className="rounded-lg bg-green-600 px-5 py-3 text-white"
+              >
+                Manage Services
+              </button>
+
+              <button
+                onClick={() => router.push('/vendor-bookings')}
+                className="rounded-lg bg-purple-600 px-5 py-3 text-white"
+              >
+                Vendor Bookings
+              </button>
+            </div>
           </div>
         )}
 
         {role === 'admin' && (
           <div className="mt-6">
             <h2 className="text-xl font-semibold">Admin Dashboard</h2>
+
             <p className="mt-2 text-gray-600">
               Manage vendors and marketplace activities.
             </p>
+
+            <button
+              onClick={() => router.push('/admin')}
+              className="mt-4 rounded-lg bg-blue-600 px-5 py-3 text-white"
+            >
+              Admin Panel
+            </button>
           </div>
         )}
 
         <button
           onClick={handleLogout}
-          className="mt-8 rounded bg-blue-600 px-5 py-2 text-white"
+          className="mt-8 rounded bg-gray-700 px-5 py-3 text-white"
         >
           Logout
         </button>
+
       </div>
     </main>
   )
