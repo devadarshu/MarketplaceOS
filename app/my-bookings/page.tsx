@@ -148,7 +148,7 @@ export default function MyBookingsPage() {
 
         {bookings.length === 0 && !error && (
           <p className="mt-6 rounded bg-gray-100 p-5 text-gray-600">
-            You haven't submitted any booking requests yet.
+            You haven&apos;t submitted any booking requests yet.
           </p>
         )}
 
