@@ -193,7 +193,7 @@ export default function VendorServicesPage() {
             <p className="mt-4 text-gray-600">Loading services...</p>
           ) : services.length === 0 ? (
             <p className="mt-4 text-gray-600">
-              You haven't published any services yet.
+              You haven&apos;t published any services yet.
             </p>
           ) : (
             <div className="mt-5 space-y-4">
