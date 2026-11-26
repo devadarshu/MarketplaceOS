@@ -8,7 +8,15 @@ const mocks = vi.hoisted(() => ({
   ordersCreate: vi.fn(),
 }))
 
+// Mock Upstash rate limiter
+vi.mock('@/lib/rate-limit', () => ({
+  rateLimitPayment: vi.fn(async () => ({
+    success: true,
+    reset: Date.now() + 60000,
+  })),
+}))
 
+// Mock Supabase
 vi.mock('@/lib/supabase/server', () => ({
   createClient: vi.fn(async () => ({
     auth: {
@@ -27,10 +35,7 @@ vi.mock('@/lib/supabase/server', () => ({
   })),
 }))
 
-
-
-
-
+// Mock Razorpay
 vi.mock('razorpay', () => ({
   default: class {
     orders = {

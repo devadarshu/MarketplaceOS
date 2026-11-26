@@ -2,6 +2,7 @@
 import { NextResponse } from 'next/server'
 import Razorpay from 'razorpay'
 import { createClient } from '@/lib/supabase/server'
+import { rateLimitPayment } from '@/lib/rate-limit'
 
 export const runtime = 'nodejs'
 
@@ -18,6 +19,22 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { error: 'Please log in first.' },
         { status: 401 }
+      )
+    }
+
+    const { success, reset } = await rateLimitPayment(user.id)
+
+    if (!success) {
+      return NextResponse.json(
+        { error: 'Too many payment requests. Please try again later.' },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': String(
+              Math.max(1, Math.ceil((reset - Date.now()) / 1000))
+            ),
+          },
+        }
       )
     }
 
