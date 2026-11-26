@@ -1,12 +1,14 @@
 
 import { NextResponse } from 'next/server'
+import Razorpay from 'razorpay'
 import { createClient } from '@/lib/supabase/server'
+
+export const runtime = 'nodejs'
 
 export async function POST(request: Request) {
   try {
     const supabase = await createClient()
 
-    // Verify logged-in user
     const {
       data: { user },
       error: authError,
@@ -19,7 +21,6 @@ export async function POST(request: Request) {
       )
     }
 
-    // Read booking ID
     const body = await request.json()
     const bookingId = body.bookingId
 
@@ -33,43 +34,86 @@ export async function POST(request: Request) {
       )
     }
 
-    // Call the secure database function
-    const { data, error } = await supabase.rpc(
-      'create_demo_payment',
-      { p_booking_id: bookingId }
-    )
-    
-    if (error) {
-  const message = error.message.includes('invalid input syntax')
-    ? 'Invalid booking ID.'
-    : error.message
+    const { data: booking, error: bookingError } = await supabase
+      .from('bookings')
+      .select('id, customer_id, status, quoted_amount')
+      .eq('id', bookingId)
+      .eq('customer_id', user.id)
+      .single()
 
-  return NextResponse.json(
-    { error: message },
-    { status: 400 }
-  )
-}
-
-    
-
-    const payment = data?.[0]
-
-    if (!payment) {
+    if (bookingError || !booking) {
       return NextResponse.json(
-        { error: 'Payment could not be created.' },
+        { error: 'Booking not found.' },
+        { status: 404 }
+      )
+    }
+
+    if (
+      booking.status !== 'confirmed' ||
+      !booking.quoted_amount ||
+      Number(booking.quoted_amount) <= 0
+    ) {
+      return NextResponse.json(
+        { error: 'This booking is not eligible for payment.' },
         { status: 400 }
       )
     }
 
+    const { data: existingPayment } = await supabase
+      .from('transactions')
+      .select('id')
+      .eq('booking_id', bookingId)
+      .eq('payment_status', 'paid')
+      .maybeSingle()
+
+    if (existingPayment) {
+      return NextResponse.json(
+        { error: 'This booking has already been paid.' },
+        { status: 409 }
+      )
+    }
+
+    const keyId = process.env.RAZORPAY_KEY_ID
+    const keySecret = process.env.RAZORPAY_KEY_SECRET
+
+    if (!keyId || !keySecret) {
+      return NextResponse.json(
+        { error: 'Razorpay configuration is missing.' },
+        { status: 500 }
+      )
+    }
+
+    const razorpay = new Razorpay({
+      key_id: keyId,
+      key_secret: keySecret,
+    })
+
+    const amountInPaise = Math.round(
+      Number(booking.quoted_amount) * 100
+    )
+
+    const order = await razorpay.orders.create({
+      amount: amountInPaise,
+      currency: 'INR',
+      receipt: `booking_${bookingId.replace(/-/g, '').slice(0, 20)}`,
+      notes: {
+        bookingId,
+        customerId: user.id,
+      },
+    })
+
     return NextResponse.json({
       success: true,
-      transactionId: payment.transaction_id,
-      amount: payment.paid_amount,
-      reference: payment.payment_reference,
+      orderId: order.id,
+      amount: order.amount,
+      currency: order.currency,
+      keyId,
     })
-  } catch {
+  } catch (error) {
+    console.error('Razorpay order error:', error)
+
     return NextResponse.json(
-      { error: 'Unable to process demo payment.' },
+      { error: 'Unable to create Razorpay order.' },
       { status: 500 }
     )
   }
